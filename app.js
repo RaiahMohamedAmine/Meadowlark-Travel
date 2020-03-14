@@ -1,9 +1,9 @@
 var express = require('express');
 var app = express();
-var handleBars = require ('express-handlebars').create ({
+var handleBars = require ('express3-handlebars').create ({
     defaultLayout :'main',
     helpers: {
-        section: (name, options)=>{
+        section: function (name, options){
         if(!this._sections) this._sections = {};
         this._sections[name] = options.fn(this);
         return null;
@@ -26,9 +26,7 @@ app.use ((req,res,next)=> {
 
 app.use ((req,res,next)=> {
     if (!res.locals.partials) res.locals.partials = {};
-    var w = weather() ;
-    console.log (w);
-    res.locals.partials.weather = w;
+    res.locals.partials.weather = weather ();
     next();
 })
 
