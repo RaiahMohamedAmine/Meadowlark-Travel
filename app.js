@@ -17,14 +17,21 @@ app.use ((req,res,next)=> {
 
 app.get('/', function(req, res){
     res.render('home'); 
+    console.log (req.acceptsLanguages ());
 });
 app.get('/about', function(req, res){
-    res.status('404');
-    res.render('about', {
+    res.status('200').render('about', {
         fortune,
-        pageTestScript : '/qa/test-about.js' 
+        pageTestScript : '/qa/test-about.js',
     });
 });
+
+app.get('/download', (req,res)=> {
+    res.download (__dirname +'/public/img/Logo.jpg', (err)=> {
+        console.log (err);
+    });
+    res.send('download') ;
+})
 
 app.use ((req,res)=> {
     res.render('404');
