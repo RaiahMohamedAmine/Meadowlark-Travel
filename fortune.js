@@ -6,6 +6,7 @@ var fortunes = [
     "Whenever possible, keep it simple.",
 ];
 
-module.exports = ()=>{
+/*module.exports = ()=>{
     return fortunes[Math.floor (Math.random()*fortunes.length)];
-}
+}*/
+module.exports = fortunes ;

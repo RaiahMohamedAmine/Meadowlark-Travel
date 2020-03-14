@@ -1,7 +1,17 @@
 var express = require('express');
 var app = express();
-var handleBars = require ('express-handlebars').create ({defaultLayout :'main'});
-var fortune = require('./fortune'); 
+var handleBars = require ('express-handlebars').create ({
+    defaultLayout :'main',
+    helpers: {
+        section: (name, options)=>{
+        if(!this._sections) this._sections = {};
+        this._sections[name] = options.fn(this);
+        return null;
+        }
+    }
+});
+var fortunes = require('./fortune'); 
+var weather = require('./weather');
 
 app.set('port', process.env.PORT || 3000) ;
 
@@ -14,14 +24,28 @@ app.use ((req,res,next)=> {
     next ();
 })
 
+app.use ((req,res,next)=> {
+    if (!res.locals.partials) res.locals.partials = {};
+    var w = weather() ;
+    console.log (w);
+    res.locals.partials.weather = w;
+    next();
+})
 
 app.get('/', function(req, res){
     res.render('home'); 
-    console.log (req.acceptsLanguages ());
 });
+
+app.get('/jquery', function(req, res){
+    res.render('jquery-test'); 
+});
+
+
 app.get('/about', function(req, res){
     res.status('200').render('about', {
-        fortune,
+        date : new Date (),
+        name : 'Raiah Mohamed Amine',
+        fortunes,
         pageTestScript : '/qa/test-about.js',
     });
 });
