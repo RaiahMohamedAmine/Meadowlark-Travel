@@ -13,23 +13,36 @@ var handleBars = require ('express3-handlebars').create ({
 var formidale = require('formidable');
 var fortunes = require('./fortune'); 
 var weather = require('./weather');
+var compression = require('compression') ;
 
 app.set('port', process.env.PORT || 3000) ;
 app.use (express.static(__dirname + '/public'));
 app.engine('handlebars', handleBars.engine) ;
 app.set ('view engine', 'handlebars');
-app.use(require('body-parser') ());
+app.use(require('body-parser').json ());
+app.use(require ('cookie-parser') (require('./credentials').cookieSecret));
+//app.use (require('express-session') ());
+//app.use (compression ({}));
 
 app.use ((req,res,next)=> {
+    //Middlewar for Page tests
     res.locals.showTests = app.get('env')!== 'production' && req.query.test==='1' ;
     next ();
 })
 
 app.use ((req,res,next)=> {
+    //Middleware for testing partials and setting the weather local's value
     if (!res.locals.partials) res.locals.partials = {};
     res.locals.partials.weather = weather ();
     next();
 })
+
+/*app.use((req,res,next)=> {
+    //Midlleware used for setting response session 
+    res.locals.flash = req.locals.flash ;
+    delete req.locals.flash;
+    next ();
+});*/
 
 app.get('/', function(req, res){
     res.render('home'); 
@@ -71,6 +84,38 @@ app.post ('/contest/vacation-photo/:year/:month', (req,res)=>{
         console.log (fields);
         console.log (files);
     })
+});
+
+app.post('/newsletter' , (req,res)=> {
+    var name= req.body.name || '' ;
+    var email = req.body.email || '';
+    if (!email.match (VALID_EMAIL_REGEX)){
+        if (req.xhr) res.json ({ error : " Invalid email address"});
+        req.session.flash = {
+            type : 'danger',
+            intro : ' Validation Error',
+            message : 'The Email adress you entred was not valid'
+        };
+        return res.redirect(303, '/newsletter/archive'); 
+    }
+    new NewsletterSignUp ({name, email}).save  ((err)=> {
+        if (err){
+            if(req.xhr) return res.json({ error: 'Database error.' });
+            req.session.flash = {
+                type: 'danger',
+                intro: 'Database error!',
+                message: 'There was a database error; please try again later.',
+            }
+            return res.redirect(303, '/newsletter/archive');
+        }
+        if(req.xhr) return res.json({ success: true });
+        req.session.flash = {
+            type: 'success',
+            intro: 'Thank you!',
+            message: 'You have now been signed up for the newsletter.',
+        };
+        return res.redirect(303, '/newsletter/archive');
+    });
 });
 
 app.use ((req,res)=> {
