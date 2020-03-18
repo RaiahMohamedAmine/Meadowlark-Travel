@@ -13,7 +13,8 @@ var handleBars = require ('express3-handlebars').create ({
 var formidale = require('formidable');
 var fortunes = require('./fortune'); 
 var weather = require('./weather');
-var compression = require('compression') ;
+var mailer = require('./mailer')  ;
+var fs = require ('fs');
 
 app.set('port', process.env.PORT || 3000) ;
 app.use (express.static(__dirname + '/public'));
@@ -21,8 +22,6 @@ app.engine('handlebars', handleBars.engine) ;
 app.set ('view engine', 'handlebars');
 app.use(require('body-parser').json ());
 app.use(require ('cookie-parser') (require('./credentials').cookieSecret));
-//app.use (require('express-session') ());
-//app.use (compression ({}));
 
 app.use ((req,res,next)=> {
     //Middlewar for Page tests
@@ -60,6 +59,38 @@ app.get('/about', function(req, res){
         fortunes,
         pageTestScript : '/qa/test-about.js',
     });
+});
+
+app.get ('/cart/checkout', (req,res)=> {
+    var cart = {} ;
+    cart.number = Math.random().toString().replace(/^0\.0*/, '');
+    cart.billing = {
+        name : "Raiah moahmed Amine",
+        email : 'hm_raiah@esi.dz',
+    };
+    console.log (cart);
+    res.render ('email/ThankYou', {
+        layout : null,
+        cart},
+        (err, html)=>{
+        if (err) console.log(err);
+        else {
+            mailer.sendMail ({
+            from : '"Meadowlark Travel " info@meadowlark.com',
+            to : cart.billing.email,
+            subject : 'Thank You for Book your Trip with Meadowlark',
+            html,
+            generateTextFromHtml : true,
+            attachments : [{
+                filename : "LOGO",
+                content : fs.createReadStream (__dirname+ '/public/email/logo.png')
+            }]
+        }, (err)=> {
+            if (err) console.log ('Unable to send the email : ' +err);
+            else console.log ('The e-mail has been sent to ' + cart.billing.email);
+        })};
+    });
+    res.render ('cart-thank-you', {cart});
 });
 
 app.get('/download', (req,res)=> {
