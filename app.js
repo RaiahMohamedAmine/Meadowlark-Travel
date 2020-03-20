@@ -15,40 +15,81 @@ var fortunes = require('./fortune');
 var weather = require('./weather');
 var mailer = require('./mailer')  ;
 var fs = require ('fs');
+var vacationModel = require ('./vacationModel');
+var vacationInSeasonListener = require ('./vacationInSeasonListener');
 
+require('./dB');
 app.set('port', process.env.PORT || 3000) ;
 app.use (express.static(__dirname + '/public'));
 app.engine('handlebars', handleBars.engine) ;
 app.set ('view engine', 'handlebars');
 app.use(require('body-parser').json ());
 app.use(require ('cookie-parser') (require('./credentials').cookieSecret));
-
+/*
 app.use ((req,res,next)=> {
     //Middlewar for Page tests
     res.locals.showTests = app.get('env')!== 'production' && req.query.test==='1' ;
     next ();
-})
+});
+
+app.use ((req,res,next)=> {
+    var cluster = require('cluster') ;
+    if (cluster.isWorker)  console.log ('Worker N~ : %d received request', cluster.worker.id); 
+    next ();
+});
 
 app.use ((req,res,next)=> {
     //Middleware for testing partials and setting the weather local's value
     if (!res.locals.partials) res.locals.partials = {};
     res.locals.partials.weather = weather ();
     next();
-})
+});
 
-/*app.use((req,res,next)=> {
+app.use((req,res,next)=> {
     //Midlleware used for setting response session 
     res.locals.flash = req.locals.flash ;
     delete req.locals.flash;
     next ();
-});*/
-
+});
+*/
 app.get('/', function(req, res){
     res.render('home'); 
 });
 
+app.get('/fail', (req,res)=> {
+    throw new Error ('Nope !');
+});
+
+app.get('/epic-fail', function(req, res){
+    //this errrr stops emmediatly the server 
+    process.nextTick(function(){
+        throw new Error('Kaboom!');
+    });
+});
+
 app.get('/jquery', function(req, res){
     res.render('jquery-test'); 
+});
+
+app.get ('/vacations',(req,res)=> {
+    vacationModel.find ({available : true},(err,vacations)=> {
+        if (err) {console.log (err);}
+        else{
+            var context = {
+                vacations : vacations.map((vacation)=> {
+                    return {
+                        sku : vacation.sku,
+                        name : vacation.name,
+                        description : vacation.description,
+                        price : vacation.price,
+                        inSeason : vacation.inSeason
+                    }
+                })
+            };
+            console.log (context);
+             res.render('vacations',{vacations : context.vacations});
+        };
+    });
 });
 
 
@@ -149,6 +190,36 @@ app.post('/newsletter' , (req,res)=> {
     });
 });
 
+app.get ('/notify-me-when-in-season', (req,res)=>{
+    res.render ('notify-me-when-in-season', {sku: req.query.sku});
+});
+
+app.post ('/notify-me-when-in-season', (req,res)=> {
+    vacationInSeasonListener.update (
+        {email : req.body.email},
+        {$push : {sku : req.body.sku}},
+        {upsert : true}, 
+        (err)=> {
+            if (err){
+                console.log (err);
+                req.session.flash ={
+                    type: 'danger',
+                    intro : 'Oops !',
+                    message : ' There was an error processing your request'
+                };
+            }
+            else{
+                req.session.flash ={
+                    type : 'success',
+                    intro : ' Thanak ou !',
+                    message : 'Well done',
+                }
+                return 
+            }
+        }
+        );
+});
+
 app.use ((req,res)=> {
     res.render('404');
 });
@@ -159,6 +230,10 @@ app.use ((req,res)=> {
     res.send('500 - Not Found');
 });
 
+app.use ((err,req,res,next)=>{
+    res.status(500).render ('404');
+});
+
 app.listen (app.get ('port'), ()=> {
     console.log ('Server started at port : ' + app.get('port'));
-})
+});
