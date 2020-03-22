@@ -20,12 +20,13 @@
     "formidable": "^1.2.2",
     "loadtest": "^5.0.0",
     "mongoose": "^5.9.5",
-    "nodemailer": "^6.4.5"
+    "nodemailer": "^6.4.5",
+    "session-mongoose": "^0.5.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "jshint": "^2.11.0",
     "linkchecker": "^1.1.0",
-    "mocha": "^7.1.0"
+    "mocha": "^7.1.1"
   }
 }

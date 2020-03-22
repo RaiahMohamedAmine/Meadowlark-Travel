@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb+srv://amine:amine@cluster0-vbjw6.mongodb.net/test?retryWrites=true&w=majority',{
+mongoose.connect(require('../credentials').mongoUrl,{
     dbName : 'vacation',
     useNewUrlParser : true,
     useCreateIndex : true,

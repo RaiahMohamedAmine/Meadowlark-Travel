@@ -1,5 +1,5 @@
 var nodeMailer = require('nodemailer');
-var credentials = require('./credentials');
+var credentials = require('../credentials');
 var mailTransprt = nodeMailer.createTransport ({
     service : 'Gmail',
     auth : {
