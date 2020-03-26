@@ -1,6 +1,7 @@
 var main = require ('./handlers/home');
 var vacation =require('./handlers/vacations');
 var fails = require ('./handlers/fails');
+var attraction =require ('./handlers/attraction');
 
 module.exports = (app)=>{
 
@@ -18,5 +19,7 @@ app.get ('/contest/vacation-photo',vacation.contestVacationPhoto);
 app.get ('/contest/vacation-photo/:year/:month',vacation.contestVacationPhotoWithParams);
 app.get ('/fail', fails.fails);
 app.get ('/epic-fail', fails.epicFails);
-
+app.get ('/api/attractions', attraction.GetAttractions);
+app.get ('/api/attraction/:id', attraction.GetAttractionById);
+app.post ('/api/attraction', attraction.PostAttraction);
 }

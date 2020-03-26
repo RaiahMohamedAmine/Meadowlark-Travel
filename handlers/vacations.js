@@ -1,6 +1,6 @@
 var formidale = require('formidable');
-var vacationModel = require ('../DB/vacationModel');
-var vacationInSeasonListener = require ('../DB/vacationInSeasonListenerModel');
+var vacationModel = require ('../DB/models/vacationModel');
+var vacationInSeasonListener = require ('../DB/models/vacationInSeasonListenerModel');
 
 exports.vacations =(req,res)=>{
     console.log ( req.currency);
