@@ -6,6 +6,15 @@ exports.home = (req,res)=> {
     res.render('home');
 };
 
+exports.account = (req,res)=>{
+    if(!req.session){
+        console.log(req.session)
+         res.redirect(303, '/auth/facebook');
+         return;
+    }
+    console.log ('l')
+    res.render('account');
+}
 exports.about = (req,res)=> {
     res.render ('about', {
         date : new Date (),

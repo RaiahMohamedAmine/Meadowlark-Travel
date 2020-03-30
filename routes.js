@@ -10,7 +10,7 @@ app.get ('/about',main.about) ;
 app.get ('/jqeury',main.jquery) ;  
 app.get ('/download',main.download) ;  
 app.get('/cart/checkout', main.cartCheckout);
-
+app.get ('/account', main.account);
 app.get ('/vacations',vacation.vacations);
 app.get ('/set-currency/:currency',vacation.setCurrency);
 app.get ('/notify-me-when-in-season',vacation.notifyGET);

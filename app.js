@@ -13,20 +13,24 @@ var handleBars = require ('express3-handlebars').create ({
         }
     }
 });
-
+var credentials = require ('./credentials')
 var weather = require('./weather');
-/*var mongoseSessionStore = require ('session-mongoose')(require('connect'));
-var sessionStore = new mongoseSessionStore({url: require('./credentials').mongoUrl});*/
-
 require('./DB/dB');
 app.set('port', process.env.PORT || 3000) ;
 app.use (express.static(__dirname + '/public'));
 app.engine('handlebars', handleBars.engine) ;
 app.set ('view engine', 'handlebars');
 app.use(require('body-parser').json ());
-app.use(require ('cookie-parser') (require('./credentials').cookieSecret));
-//app.use (require('express-session')({store : sessionStore}));
+app.use(require ('cookie-parser') (credentials.cookieSecret));
 
+var auth = require('./lib/auth')(app,{
+    providers : credentials.authProviders,
+    successRedirect :'/',
+    failureRedirect :'/login'
+});
+
+auth.init ();
+auth.registerRoutes ();
 app.use ((req,res,next)=> {
     //Middlewar for Page tests
     res.locals.showTests = app.get('env')!== 'production' && req.query.test==='1' ;
@@ -56,6 +60,9 @@ app.use((req,res,next)=> {
 });*/
 require ('./routes')(app);
 
+app.get('/login',(req,res)=>{
+    res.send('LOGIN');
+})
 app.use ((req,res)=> {
     res.render('404');
 });
